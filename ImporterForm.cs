@@ -1,16 +1,11 @@
 ﻿using Macroscop_FaceDB_Importer.Enums;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Macroscop_FaceDB_Importer
@@ -31,6 +26,7 @@ namespace Macroscop_FaceDB_Importer
 
         public delegate void LogMessageDelegate(string message);
         public delegate void ProgressBarDelegate(int value);
+        public delegate void ImportStatus(bool importInProgress);
         public delegate void SetNameMaskDelegate();
 
         private Thread ImportThread;
@@ -98,10 +94,12 @@ namespace Macroscop_FaceDB_Importer
 
             MacroscopSecureConnection = false;
             this.buttonConnectionSecure.BackgroundImage = Resources._unlock;
+            this.Icon = Resources.favicon;
             this.numericUpDownPort.Controls[0].Visible = false;
             this.numericUpDownPort.Maximum = 65535;
             this.numericUpDownPort.Minimum = 0;
             this.numericUpDownPort.Value = 8080;
+            this.progressBar.Maximum = 0;
 
             MacroscopPort = (ushort)this.numericUpDownPort.Value;
             MacroscopAddress = this.textBoxAddress.Text;
@@ -111,7 +109,51 @@ namespace Macroscop_FaceDB_Importer
 
             Importer.LogMessage += LogMessage_Receiver;
             Importer.PrograssBarValue += ProgressBar_ValueChanger;
+            Importer.ImportInProgress += ImportInProgress;
             RequestBuilder.SetNameMask += SetNameMask;
+        }
+
+        private void ImportInProgress(bool importInProgress)
+        {
+            switch (importInProgress)
+            {
+                case true:
+                    LogMessage_Receiver($"Import of {this.progressBar.Maximum} images started.");
+
+                    Invoke(new Action(() => {
+                        this.buttonStartImport.Text = "Abort";
+                    }));
+
+                    break;
+                case false:
+                    LogMessage_Receiver($"Import of {this.progressBar.Maximum} images is complete.\nSuccessfully imported {Importer.SuccessCounter} images.");
+                    if (Importer.ImagesToImport.Count > Importer.SuccessCounter)
+                    {
+                        FileInfo logFileInfo = new FileInfo(LogFile);
+                        LogMessage_Receiver($"Failed to import some images. Logs: {(logFileInfo.FullName)}");
+                    }
+
+                    Invoke(new Action(() => {
+                        this.buttonStartImport.Text = "Import";
+                    }));
+
+                    break;
+            }
+
+            Invoke(new Action(() => {
+                this.textBoxAddress.Enabled = !importInProgress;
+                this.numericUpDownPort.Enabled = !importInProgress;
+                this.buttonConnectionSecure.Enabled = !importInProgress;
+                this.textBoxLogin.Enabled = !importInProgress;
+                this.textBoxPassword.Enabled = !importInProgress;
+                this.comboBoxModuleType.Enabled = !importInProgress;
+                this.textBoxImagesDir.Enabled = !importInProgress;
+                this.buttonImagesDir.Enabled = !importInProgress;
+                this.textBoxNamesReg.Enabled = !importInProgress;
+                this.comboBoxFirstName.Enabled = !importInProgress;
+                this.comboBoxPatronymic.Enabled = !importInProgress;
+                this.comboBoxSecondName.Enabled = !importInProgress;
+            }));
         }
 
         private void textBoxNamesReg_OnText_Changed(object sender, EventArgs e)
@@ -217,6 +259,8 @@ namespace Macroscop_FaceDB_Importer
                 };
                 ImportThread.Start();
             }
+            else
+                Importer.DoWork = false;
         }
 
         private void FindImages()

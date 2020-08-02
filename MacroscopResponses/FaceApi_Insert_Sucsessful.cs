@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Macroscop_FaceDB_Importer.MacroscopResponses
 {
-    public class FaceApi_Insert_Sucsessful : HttpResponseJsonContent
+    public class FaceApi_Insert_Successful : HttpResponseJsonContent
     {
         public string id { get; } = JsonBody.id;
         public string external_id { get; } = JsonBody.external_id;

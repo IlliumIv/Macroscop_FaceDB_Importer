@@ -55,7 +55,7 @@
             this.textBoxImagesDir = new System.Windows.Forms.TextBox();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.richTextBoxLogs = new System.Windows.Forms.RichTextBox();
-            this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.progressBar = new TextProgressBar();
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.groupBoxConnection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPort)).BeginInit();
@@ -430,7 +430,7 @@
         private System.Windows.Forms.RichTextBox richTextBoxLogs;
         private System.Windows.Forms.Label labelModuleType;
         private System.Windows.Forms.ComboBox comboBoxModuleType;
-        private System.Windows.Forms.ProgressBar progressBar;
+        private TextProgressBar progressBar;
         private System.Windows.Forms.Button buttonStartImport;
         private System.Windows.Forms.Button buttonConnectionSecure;
         private System.Windows.Forms.NumericUpDown numericUpDownPort;

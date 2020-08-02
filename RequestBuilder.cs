@@ -29,9 +29,16 @@ namespace Macroscop_FaceDB_Importer
                 if (matches.Count > 0)
                 {
                     SetNameMask();
-                    first_name = matches[ImporterForm.NameMask["first_name"]].Value;
-                    patronymic = matches[ImporterForm.NameMask["patronymic"]].Value;
-                    second_name = matches[ImporterForm.NameMask["second_name"]].Value;
+                    try
+                    {
+                        first_name = matches[ImporterForm.NameMask["first_name"]].Value;
+                        patronymic = matches[ImporterForm.NameMask["patronymic"]].Value;
+                        second_name = matches[ImporterForm.NameMask["second_name"]].Value;
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
                 }
             }
 

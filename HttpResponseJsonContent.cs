@@ -24,7 +24,7 @@ namespace Macroscop_FaceDB_Importer
 
             try
             {
-                Response = new FaceApi_Insert_Sucsessful();
+                Response = new FaceApi_Insert_Successful();
                 return;
             }
             catch (ArgumentNullException) { }

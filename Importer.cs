@@ -1,6 +1,7 @@
 ﻿using Macroscop_FaceDB_Importer.MacroscopResponses;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net.Http;
@@ -12,9 +13,14 @@ namespace Macroscop_FaceDB_Importer
     {
         public static event ImporterForm.LogMessageDelegate LogMessage;
         public static event ImporterForm.ProgressBarDelegate PrograssBarValue;
+        public static event ImporterForm.ImportStatus ImportInProgress;
 
         public static List<FileInfo> ImagesToImport;
         public static HttpClient MacroscopClient;
+
+        public static int SuccessCounter;
+
+        public static bool DoWork;
 
         private static readonly HttpClientHandler macroscopClientHandler = new HttpClientHandler()
         {
@@ -46,9 +52,16 @@ namespace Macroscop_FaceDB_Importer
                 LogMessage("No images found to import");
             else
             {
+                DoWork = true;
+                ImportInProgress(true);
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 int counter = 0;
+                SuccessCounter = 0;
                 foreach (FileInfo image in ImagesToImport)
                 {
+                    if (!DoWork)
+                        break;
+
                     counter++;
                     PrograssBarValue(counter);
 
@@ -62,8 +75,9 @@ namespace Macroscop_FaceDB_Importer
                             var response = new HttpResponseJsonContent(content);
                             var deserializedResponse = response.GetDeserializedResponse();
 
-                            if (deserializedResponse is FaceApi_Insert_Sucsessful)
+                            if (deserializedResponse is FaceApi_Insert_Successful)
                             {
+                                SuccessCounter++;
                                 continue;
                             }
                             else if (deserializedResponse is FaceApi_Insert_Error)
@@ -86,18 +100,15 @@ namespace Macroscop_FaceDB_Importer
                     }
                     catch (Exception e)
                     {
-                        LogMessage(e.Message);
+                        LogMessage($"{e.Message}\n{e.StackTrace}");
                         break;
                     }
                 }
+                LogMessage($"Time spent: {stopwatch.Elapsed}");
 
-                PrograssBarValue(ImagesToImport.Count);
+                PrograssBarValue(SuccessCounter);
+                ImportInProgress(false);
             }
-        }
-
-        public static void To_LogMessage(string message)
-        {
-            LogMessage(message);
         }
     }
 }
