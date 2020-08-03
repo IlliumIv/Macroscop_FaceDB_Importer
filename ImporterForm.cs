@@ -95,7 +95,7 @@ namespace Macroscop_FaceDB_Importer
             MacroscopSecureConnection = false;
             this.buttonConnectionSecure.BackgroundImage = Resources._unlock;
             this.Icon = Resources.favicon;
-            this.numericUpDownPort.Controls[0].Visible = false;
+            // this.numericUpDownPort.Controls.RemoveAt(0);
             this.numericUpDownPort.Maximum = 65535;
             this.numericUpDownPort.Minimum = 0;
             this.numericUpDownPort.Value = 8080;
