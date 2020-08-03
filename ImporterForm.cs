@@ -268,7 +268,7 @@ namespace Macroscop_FaceDB_Importer
             try
             {
                 DirectoryInfo imagesDir = new DirectoryInfo(this.textBoxImagesDir.Text);
-                Importer.ImagesToImport = imagesDir.GetFiles("*.*", SearchOption.AllDirectories).Where(s => s.Extension == ".jpg" || s.Extension == ".png" || s.Extension == ".bmp").ToList();
+                Importer.ImagesToImport = imagesDir.GetFiles().Where(s => s.Extension == ".jpg" || s.Extension == ".png" || s.Extension == ".bmp").ToList();
 
                 Invoke(new Action(() => {
                     this.progressBar.Maximum = Importer.ImagesToImport.Count;
