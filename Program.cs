@@ -1,7 +1,5 @@
+using Macroscop_FaceDB_Importer.Forms;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Macroscop_FaceDB_Importer
@@ -17,7 +15,7 @@ namespace Macroscop_FaceDB_Importer
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ImporterForm());
+            Application.Run(new MainForm());
         }
     }
 }

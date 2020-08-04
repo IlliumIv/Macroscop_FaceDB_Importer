@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Macroscop_FaceDB_Importer.Enums
+﻿namespace Macroscop_FaceDB_Importer.Enums
 {
     public enum ModuleTypes
     {
