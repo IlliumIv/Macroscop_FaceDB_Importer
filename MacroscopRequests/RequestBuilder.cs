@@ -1,6 +1,7 @@
 ﻿using Macroscop_FaceDB_Importer.Entities.FaceApi;
 using Macroscop_FaceDB_Importer.Enums;
 using Macroscop_FaceDB_Importer.Forms;
+using Macroscop_FaceDB_Importer.Workers;
 using System;
 using System.Drawing;
 using System.Globalization;
@@ -25,39 +26,71 @@ namespace Macroscop_FaceDB_Importer.MacroscopRequests
 
                 if (matches.Count > 0)
                 {
-                    foreach (var prop in person.GetType().GetProperties())
-                    {
-                        try { prop.SetValue(person, matches[MainForm.NameMask[prop.Name]].Value); }
-                        catch { }
-                    }
+                    person.first_name = matches[MainForm.NameMask["first_name"]].Value;
+                    person.patronymic = matches[MainForm.NameMask["patronymic"]].Value;
+                    person.second_name = matches[MainForm.NameMask["second_name"]].Value;
                 }
             }
 
             var stringImage = Convert.ToBase64String(ImageToByteArray(Image.FromFile(image.FullName)));
 
-            HttpRequestMessage insertImage_RequestMessage = new HttpRequestMessage(HttpMethod.Post,
+            var contentString =                                  $"{{" +
+                                                                    $"\"first_name\": \"{person.first_name}\"," +
+                                                                    $"\"patronymic\": \"{person.patronymic}\"," +
+                                                                    $"\"second_name\": \"{person.second_name}\",";
+                                                                 // $"\"additional_info\": null,"
+            if (!(Importer.GroupId is null)) contentString +=       $"\"groups\": " +
+                                                                        $"[" +
+                                                                            $"{{" +
+                                                                                $"\"id\": \"{Importer.GroupId}\"" +
+                                                                            $"}}" +
+                                                                        $"],";
+            contentString +=                                        $"\"face_images\": " +
+                                                                        $"[" +
+                                                                            $"\"{stringImage}\"" +
+                                                                        $"]" +
+                                                                 $"}}";
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post,
                 $"api/faces?module={MainForm.MacroscopModule.ToString().ToLower()}")
             {
-                Content = new StringContent(
-                    $"{{" +
-                        $"\"first_name\": \"{person.first_name}\"," +
-                        $"\"patronymic\": \"{person.patronymic}\"," +
-                        $"\"second_name\": \"{person.second_name}\"," +
-                        // $"\"additional_info\": null," +
-                        $"\"face_images\": " +
-                            $"[" +
-                                $"\"{stringImage}\"" +
-                            $"]" +
-                    $"}}",
-                    Encoding.UTF8, "application/json")
+                Content = new StringContent(contentString, Encoding.UTF8, "application/json")
             };
 
+            return Set_Auth(requestMessage);
+        }
+
+        public static HttpRequestMessage FaceApi_GetGroups()
+        {
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $"api/faces-groups?module={MainForm.MacroscopModule.ToString().ToLower()}");
+
+            return Set_Auth(requestMessage);
+        }
+
+        public static HttpRequestMessage FaceApi_InsertGroup(string groupName)
+        {
+            var contentString = $"{{" +
+                                    $"\"name\": \"{groupName}\"," +
+                                $"}}";
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                $"api/faces-groups?module={MainForm.MacroscopModule.ToString().ToLower()}")
+            {
+                Content = new StringContent(contentString, Encoding.UTF8, "application/json")
+            };
+
+            return Set_Auth(requestMessage);
+        }
+
+        private static HttpRequestMessage Set_Auth(HttpRequestMessage requestMessage)
+        {
             var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(
                 $"{MainForm.MacroscopLogin}:{CreateMD5(MainForm.MacroscopPassword)}"));
 
-            insertImage_RequestMessage.Headers.Add("Authorization", $"Basic {credentials}");
+            requestMessage.Headers.Add("Authorization", $"Basic {credentials}");
 
-            return insertImage_RequestMessage;
+            return requestMessage;
         }
 
         private static Uri BaseAddress_builder()

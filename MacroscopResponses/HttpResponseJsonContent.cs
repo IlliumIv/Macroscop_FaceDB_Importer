@@ -22,14 +22,28 @@ namespace Macroscop_FaceDB_Importer.MacroscopResponses
 
             try
             {
-                Response = new InsertSucsessful();
+                Response = new Face_InsertSucsessful();
                 return;
             }
             catch (ArgumentNullException) { }
 
             try
             {
-                Response = new InsertError();
+                Response = new Groups_List();
+                return;
+            }
+            catch (ArgumentNullException) { }
+
+            try
+            {
+                Response = new Groups_InsertSucsessful();
+                return;
+            }
+            catch (ArgumentNullException) { }
+
+            try
+            {
+                Response = new Error();
                 return;
             }
             catch (ArgumentNullException) { }

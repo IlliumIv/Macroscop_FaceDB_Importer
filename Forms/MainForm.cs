@@ -21,11 +21,12 @@ namespace Macroscop_FaceDB_Importer.Forms
         public static string MacroscopLogin { get; private set; }
         public static string MacroscopPassword { get; private set; }
         public static ModuleTypes MacroscopModule { get; private set; }
+        public static string GroupName { get; private set; }
 
         public static Dictionary<string, int> NameMask;
         public static Regex imageNameMask;
 
-        public delegate void LogMessageDelegate(string message);
+        public delegate void LogMessageDelegate(string message, bool logFileOnly = false);
         public delegate void ProgressBarDelegate(int value);
         public delegate void ImportStatus(bool importInProgress);
 
@@ -47,18 +48,20 @@ namespace Macroscop_FaceDB_Importer.Forms
             }));
         }
 
-        private void LogMessage_Receiver(string message)
+        private void LogMessage_Receiver(string message, bool logFileOnly = false)
         {
             message = $"[{DateTime.Now}] {message}";
             message += "\n\n";
+
+            File.AppendAllText(LogFile, message);
+
+            if (logFileOnly) return;
 
             Invoke(new Action(() => {
                 this.richTextBoxLogs.Text += message;
                 this.richTextBoxLogs.SelectionStart = richTextBoxLogs.Text.Length;
                 this.richTextBoxLogs.ScrollToCaret();
             }));
-
-            File.AppendAllText(LogFile, message);
         }
 
         private void ButtonImagesDir_Click(object sender, EventArgs e)
@@ -108,6 +111,7 @@ namespace Macroscop_FaceDB_Importer.Forms
             MacroscopLogin = this.textBoxLogin.Text;
             MacroscopPassword = this.textBoxPassword.Text;
             MacroscopModule = (ModuleTypes)this.comboBoxModuleType.SelectedValue;
+            GroupName = this.textBoxGroupName.Text;
 
             Importer.LogMessage += LogMessage_Receiver;
             Importer.PrograssBarValue += ProgressBar_ValueChanger;
@@ -170,9 +174,6 @@ namespace Macroscop_FaceDB_Importer.Forms
 
                     break;
 
-                // case @"([А-я]{3,})":
-                   // break;
-
                 default:
                     FindImages();
 
@@ -209,6 +210,9 @@ namespace Macroscop_FaceDB_Importer.Forms
                             if (parsedName.Count > 0)
                             {
                                 parsedName.RemoveAll(s => s == "");
+                                parsedName.Remove("jpg");
+                                parsedName.Remove("png");
+                                parsedName.Remove("bmp");
                                 parsedName.Add("");
 
                                 Invoke(new Action(() =>
@@ -239,12 +243,18 @@ namespace Macroscop_FaceDB_Importer.Forms
         {
             NameMask = new Dictionary<string, int>();
 
-            Invoke(new Action(() =>
+            if (NamesRegMatchCollectionIndex is null)
             {
-                NameMask.Add("first_name", NamesRegMatchCollectionIndex.GetValueOrDefault(this.comboBoxFirstName.Text));
-                NameMask.Add("patronymic", NamesRegMatchCollectionIndex.GetValueOrDefault(this.comboBoxPatronymic.Text));
-                NameMask.Add("second_name", NamesRegMatchCollectionIndex.GetValueOrDefault(this.comboBoxSecondName.Text));
-            }));
+                NameMask.Add("first_name", 0);
+                NameMask.Add("patronymic", 0);
+                NameMask.Add("second_name", 0);
+
+                return;
+            }
+
+            NameMask.Add("first_name", NamesRegMatchCollectionIndex.GetValueOrDefault(this.comboBoxFirstName.Text));
+            NameMask.Add("patronymic", NamesRegMatchCollectionIndex.GetValueOrDefault(this.comboBoxPatronymic.Text));
+            NameMask.Add("second_name", NamesRegMatchCollectionIndex.GetValueOrDefault(this.comboBoxSecondName.Text));
         }
 
         private void ButtonStartImport_Click(object sender, EventArgs e)
@@ -280,6 +290,11 @@ namespace Macroscop_FaceDB_Importer.Forms
             {
                  // LogMessage_Receiver(ex.Message);
             }
+        }
+
+        private void TextBoxGroupName_OnTextChanged(object sender, EventArgs e)
+        {
+            GroupName = this.textBoxGroupName.Text;
         }
 
         private void TextBoxAddress_OnTextChanged(object sender, EventArgs e)

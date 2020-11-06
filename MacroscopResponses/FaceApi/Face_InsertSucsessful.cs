@@ -2,7 +2,7 @@
 
 namespace Macroscop_FaceDB_Importer.MacroscopResponses.FaceApi
 {
-    public class InsertSucsessful : HttpResponseJsonContent
+    public class Face_InsertSucsessful : HttpResponseJsonContent
     {
 #pragma warning disable IDE1006 // Naming Styles
         public string id { get; } = JsonBody.id;

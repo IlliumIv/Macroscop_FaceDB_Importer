@@ -2,6 +2,7 @@
 using Macroscop_FaceDB_Importer.MacroscopRequests;
 using Macroscop_FaceDB_Importer.MacroscopResponses;
 using Macroscop_FaceDB_Importer.MacroscopResponses.FaceApi;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,6 +23,7 @@ namespace Macroscop_FaceDB_Importer.Workers
         public static HttpClient MacroscopClient;
 
         public static int SuccessCounter;
+        public static string GroupId;
 
         public static bool DoWork;
 
@@ -60,6 +62,55 @@ namespace Macroscop_FaceDB_Importer.Workers
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
+                if (MainForm.GroupName != "")
+                {
+                    try
+                    {
+                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.FaceApi_GetGroups()).Result;
+                        string content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
+
+                        if (StringInfo.GetNextTextElement(content, 0) == "{")
+                        {
+                            var response = new HttpResponseJsonContent(content);
+                            var deserializedResponse = response.GetDeserializedResponse();
+
+                            if (deserializedResponse is Groups_List)
+                            {
+                                var list = (Groups_List)deserializedResponse;
+                                for (int i = 0; i < list.groups.Count; i++)
+                                {
+                                    if (MainForm.GroupName == (string)response.GetDynamicBody().groups[i].name)
+                                        GroupId = (string)response.GetDynamicBody().groups[i].id;
+                                }
+                            }
+                        }
+
+                        if (GroupId is null)
+                        {
+                            macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.FaceApi_InsertGroup(MainForm.GroupName)).Result;
+                            content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
+
+                            if (StringInfo.GetNextTextElement(content, 0) == "{")
+                            {
+                                var response = new HttpResponseJsonContent(content);
+                                var deserializedResponse = response.GetDeserializedResponse();
+
+                                if (deserializedResponse is Groups_InsertSucsessful)
+                                {
+                                    Groups_InsertSucsessful groups_InsertSucsessful = (Groups_InsertSucsessful)response.GetDeserializedResponse();
+                                    GroupId = groups_InsertSucsessful.id;
+                                }
+                                else
+                                    LogMessage($"Failed to add new group \"{MainForm.GroupName}\":\n{content}");
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        LogMessage($"{e.Message}\n{e.StackTrace}");
+                    }
+                }
+
                 int counter = 0;
                 SuccessCounter = 0;
 
@@ -73,6 +124,7 @@ namespace Macroscop_FaceDB_Importer.Workers
 
                     try
                     {
+                        LogMessage($"{image.FullName}", true);
                         HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.FaceApi_InsertImage(image)).Result;
                         string content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
 
@@ -81,14 +133,14 @@ namespace Macroscop_FaceDB_Importer.Workers
                             var response = new HttpResponseJsonContent(content);
                             var deserializedResponse = response.GetDeserializedResponse();
 
-                            if (deserializedResponse is InsertSucsessful)
+                            if (deserializedResponse is Face_InsertSucsessful)
                             {
                                 SuccessCounter++;
                                 continue;
                             }
-                            else if (deserializedResponse is InsertError)
+                            else if (deserializedResponse is Error)
                             {
-                                InsertError FaceApi_Insert_Error = (InsertError)response.GetDeserializedResponse();
+                                Error FaceApi_Insert_Error = (Error)response.GetDeserializedResponse();
                                 LogMessage($"{image.Name}:\n\t{FaceApi_Insert_Error.ErrorMessage}");
 
                                 if (FaceApi_Insert_Error.ErrorMessage.Contains("License error:") ||
