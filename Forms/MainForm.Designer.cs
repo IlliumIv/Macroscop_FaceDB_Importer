@@ -161,7 +161,7 @@
             this.groupBoxConnection.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxConnection.Location = new System.Drawing.Point(0, 0);
             this.groupBoxConnection.Name = "groupBoxConnection";
-            this.groupBoxConnection.Size = new System.Drawing.Size(287, 225);
+            this.groupBoxConnection.Size = new System.Drawing.Size(287, 200);
             this.groupBoxConnection.TabIndex = 8;
             this.groupBoxConnection.TabStop = false;
             this.groupBoxConnection.Text = "Connection";
@@ -239,7 +239,7 @@
             this.groupBoxImages.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxImages.Location = new System.Drawing.Point(0, 0);
             this.groupBoxImages.Name = "groupBoxImages";
-            this.groupBoxImages.Size = new System.Drawing.Size(287, 225);
+            this.groupBoxImages.Size = new System.Drawing.Size(287, 200);
             this.groupBoxImages.TabIndex = 9;
             this.groupBoxImages.TabStop = false;
             this.groupBoxImages.Text = "Images";
@@ -378,7 +378,7 @@
             this.richTextBoxLogs.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxLogs.Name = "richTextBoxLogs";
             this.richTextBoxLogs.ReadOnly = true;
-            this.richTextBoxLogs.Size = new System.Drawing.Size(578, 28);
+            this.richTextBoxLogs.Size = new System.Drawing.Size(578, 53);
             this.richTextBoxLogs.TabIndex = 8;
             this.richTextBoxLogs.Text = "";
             // 
@@ -386,7 +386,7 @@
             // 
             this.progressBar.CustomText = "";
             this.progressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.progressBar.Location = new System.Drawing.Point(0, 28);
+            this.progressBar.Location = new System.Drawing.Point(0, 53);
             this.progressBar.MinimumSize = new System.Drawing.Size(0, 23);
             this.progressBar.Name = "progressBar";
             this.progressBar.ProgressColor = System.Drawing.Color.LimeGreen;
@@ -408,7 +408,7 @@
             // splitContainerMain.Panel1
             // 
             this.splitContainerMain.Panel1.Controls.Add(this.splitContainerUpper);
-            this.splitContainerMain.Panel1MinSize = 225;
+            this.splitContainerMain.Panel1MinSize = 200;
             // 
             // splitContainerMain.Panel2
             // 
@@ -416,7 +416,7 @@
             this.splitContainerMain.Panel2.Controls.Add(this.progressBar);
             this.splitContainerMain.Panel2MinSize = 0;
             this.splitContainerMain.Size = new System.Drawing.Size(578, 280);
-            this.splitContainerMain.SplitterDistance = 225;
+            this.splitContainerMain.SplitterDistance = 200;
             this.splitContainerMain.TabIndex = 11;
             this.splitContainerMain.Text = "splitContainer1";
             // 
@@ -436,7 +436,7 @@
             // 
             this.splitContainerUpper.Panel2.Controls.Add(this.groupBoxImages);
             this.splitContainerUpper.Panel2MinSize = 287;
-            this.splitContainerUpper.Size = new System.Drawing.Size(578, 225);
+            this.splitContainerUpper.Size = new System.Drawing.Size(578, 200);
             this.splitContainerUpper.SplitterDistance = 287;
             this.splitContainerUpper.TabIndex = 0;
             this.splitContainerUpper.Text = "splitContainer1";
