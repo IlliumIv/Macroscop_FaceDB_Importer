@@ -340,7 +340,7 @@
             this.textBoxNamesReg.Name = "textBoxNamesReg";
             this.textBoxNamesReg.Size = new System.Drawing.Size(180, 23);
             this.textBoxNamesReg.TabIndex = 3;
-            this.textBoxNamesReg.Text = "([A-z]*|[А-я]*)";
+            this.textBoxNamesReg.Text = @"(\w*|[А-я]*)";
             this.textBoxNamesReg.TextChanged += new System.EventHandler(this.TextBoxNamesReg_OnTextChanged);
             // 
             // buttonImagesDir
