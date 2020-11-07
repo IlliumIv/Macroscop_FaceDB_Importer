@@ -1,8 +1,8 @@
-﻿using Macroscop_FaceDB_Importer.Forms;
+﻿using Macroscop_FaceDB_Importer.Enums;
+using Macroscop_FaceDB_Importer.Forms;
 using Macroscop_FaceDB_Importer.MacroscopRequests;
 using Macroscop_FaceDB_Importer.MacroscopResponses;
 using Macroscop_FaceDB_Importer.MacroscopResponses.FaceApi;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -66,7 +66,7 @@ namespace Macroscop_FaceDB_Importer.Workers
                 {
                     try
                     {
-                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.FaceApi_GetGroups()).Result;
+                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.New(RequestTypes.FaceApi_GetGroups)).Result;
                         string content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
 
                         if (StringInfo.GetNextTextElement(content, 0) == "{")
@@ -87,7 +87,7 @@ namespace Macroscop_FaceDB_Importer.Workers
 
                         if (GroupId is null)
                         {
-                            macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.FaceApi_InsertGroup(MainForm.GroupName)).Result;
+                            macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.New(RequestTypes.FaceApi_InsertGroup)).Result;
                             content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
 
                             if (StringInfo.GetNextTextElement(content, 0) == "{")
@@ -125,7 +125,7 @@ namespace Macroscop_FaceDB_Importer.Workers
                     try
                     {
                         LogMessage($"{image.FullName}", true);
-                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.FaceApi_InsertImage(image)).Result;
+                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.New(RequestTypes.FaceApi_InsertImage, image)).Result;
                         string content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
 
                         if (StringInfo.GetNextTextElement(content, 0) == "{")
