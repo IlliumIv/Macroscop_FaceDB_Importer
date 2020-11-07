@@ -41,4 +41,8 @@
     </None>
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="rmdir /s /q &quot;bin/publish&quot;" />
+  </Target>
+
 </Project>
