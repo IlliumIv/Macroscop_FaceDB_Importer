@@ -84,10 +84,10 @@ namespace Macroscop_FaceDB_Importer.MacroscopRequests
             }
 
             requestMessage = new HttpRequestMessage(method,
-                $"api/{requestString}?module={MainForm.MacroscopModule.ToString().ToLower()}")
-            {
-                Content = new StringContent(contentString, Encoding.UTF8, "application/json")
-            };
+                $"api/{requestString}?module={MainForm.MacroscopModule.ToString().ToLower()}") { };
+
+            if (contentString != null)
+                requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
 
             var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(
                 $"{MainForm.MacroscopLogin}:{CreateMD5(MainForm.MacroscopPassword)}"));
