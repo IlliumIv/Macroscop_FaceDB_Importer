@@ -14,79 +14,24 @@ namespace Macroscop_FaceDB_Importer.MacroscopRequests
 {
     public class RequestBuilder
     {
+        public static event MainForm.LogMessageDelegate LogMessage;
+
         public static Uri BaseAddress { get { return BaseAddress_builder(); } }
 
         public static HttpRequestMessage New(RequestTypes requestType, FileInfo image = null)
         {
-            HttpRequestMessage requestMessage;
-            HttpMethod method = HttpMethod.Get;
-
-#nullable enable
-            string? contentString = null;
-            string? requestString = null;
-#nullable restore
-
-            switch (requestType)
+            (HttpMethod method, string requestString, string contentString) = requestType switch
             {
-                case RequestTypes.FaceApi_InsertImage:
+                RequestTypes.FaceApi_InsertImage => (HttpMethod.Post, "faces", Create_InsertImageContentString(image)),
+                RequestTypes.FaceApi_GetGroups => (HttpMethod.Get, "faces-groups", string.Empty),
+                RequestTypes.FaceApi_InsertGroup => (HttpMethod.Post, "faces-groups", $"{{\"name\": \"{MainForm.GroupName}\",}}"),
+                _ => throw new NotImplementedException(),
+            };
 
-                    method = HttpMethod.Post;
-                    requestString = "faces";
-                    Person person = new Person();
-
-                    if (!(MainForm.imageNameMask is null))
-                    {
-                        MatchCollection matches = MainForm.imageNameMask.Matches(image.Name);
-
-                        if (matches.Count > 0)
-                        {
-                            person.first_name = matches[MainForm.NameMask["first_name"]].Value;
-                            person.patronymic = matches[MainForm.NameMask["patronymic"]].Value;
-                            person.second_name = matches[MainForm.NameMask["second_name"]].Value;
-                        }
-                    }
-
-                    var stringImage = Convert.ToBase64String(ImageToByteArray(Image.FromFile(image.FullName)));
-
-                    contentString =                                     $"{{" +
-                                                                            $"\"first_name\": \"{person.first_name}\"," +
-                                                                            $"\"patronymic\": \"{person.patronymic}\"," +
-                                                                            $"\"second_name\": \"{person.second_name}\",";
-                                                                         // $"\"additional_info\": null,"
-                    if (!(Importer.GroupId is null)) contentString +=       $"\"groups\": " +
-                                                                                $"[" +
-                                                                                    $"{{" +
-                                                                                        $"\"id\": \"{Importer.GroupId}\"" +
-                                                                                    $"}}" +
-                                                                                $"],";
-                    contentString +=                                        $"\"face_images\": " +
-                                                                                $"[" +
-                                                                                    $"\"{stringImage}\"" +
-                                                                                $"]" +
-                                                                        $"}}";
-                    break;
-
-                case RequestTypes.FaceApi_GetGroups:
-
-                    method = HttpMethod.Get;
-                    requestString = "faces-groups";
-
-                    break;
-
-                case RequestTypes.FaceApi_InsertGroup:
-
-                    method = HttpMethod.Post;
-                    requestString = "faces-groups";
-                    contentString = $"{{" +
-                                            $"\"name\": \"{MainForm.GroupName}\"," +
-                                        $"}}";
-                    break;
-            }
-
-            requestMessage = new HttpRequestMessage(method,
+            HttpRequestMessage requestMessage = new(method,
                 $"api/{requestString}?module={MainForm.MacroscopModule.ToString().ToLower()}") { };
 
-            if (contentString != null)
+            if (contentString != string.Empty)
                 requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
 
             var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(
@@ -95,6 +40,35 @@ namespace Macroscop_FaceDB_Importer.MacroscopRequests
             requestMessage.Headers.Add("Authorization", $"Basic {credentials}");
 
             return requestMessage;
+        }
+
+        private static string Create_InsertImageContentString(FileInfo imageFileInfo)
+        {
+
+            Person person = new();
+
+            if (!(MainForm.imageNameMask is null))
+            {
+                MatchCollection matches = MainForm.imageNameMask.Matches(imageFileInfo.Name);
+
+                if (matches.Count > 0)
+                {
+                    person.first_name = matches[MainForm.NameMask["first_name"]].Value;
+                    person.patronymic = matches[MainForm.NameMask["patronymic"]].Value;
+                    person.second_name = matches[MainForm.NameMask["second_name"]].Value;
+                }
+            }
+
+            string contentString = $"{{\"first_name\": \"{person.first_name}\"," +
+                $"\"patronymic\": \"{person.patronymic}\",\"second_name\": \"{person.second_name}\",";
+            // $"\"additional_info\": null,"
+            if (!(Importer.GroupId is null)) contentString += $"\"groups\": [{{\"id\": \"{Importer.GroupId}\"}}],";
+
+            using Image image = Image.FromFile(imageFileInfo.FullName);
+            string stringImage = Convert.ToBase64String(ImageToByteArray(image));
+            contentString += $"\"face_images\": [\"{stringImage}\"]}}";
+
+            return contentString;
         }
 
         private static Uri BaseAddress_builder()

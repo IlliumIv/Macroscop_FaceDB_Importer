@@ -105,10 +105,7 @@ namespace Macroscop_FaceDB_Importer.Workers
                             }
                         }
                     }
-                    catch (Exception e)
-                    {
-                        LogMessage($"{e.Message}\n{e.StackTrace}");
-                    }
+                    catch (Exception e) { LogMessage($"{e.Message}\n{e.StackTrace}"); }
                 }
 
                 int counter = 0;
@@ -125,7 +122,8 @@ namespace Macroscop_FaceDB_Importer.Workers
                     try
                     {
                         LogMessage($"{image.FullName}", true);
-                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(RequestBuilder.New(RequestTypes.FaceApi_InsertImage, image)).Result;
+                        var req = RequestBuilder.New(RequestTypes.FaceApi_InsertImage, image);
+                        HttpResponseMessage macroscopRawResponse = MacroscopClient.SendAsync(req).Result;
                         string content = macroscopRawResponse.Content.ReadAsStringAsync().Result;
 
                         if (StringInfo.GetNextTextElement(content, 0) == "{")
@@ -158,8 +156,16 @@ namespace Macroscop_FaceDB_Importer.Workers
                     }
                     catch (Exception e)
                     {
-                        LogMessage($"{e.Message}\n{e.StackTrace}");
-                        break;
+                        (string message, bool shouldContinue) error = e switch
+                        {
+                            OutOfMemoryException => ($"{image.FullName}:\n\tWrong image format.", true),
+                            _ => ($"{e.Message}\n{e.StackTrace}", false),
+                        };
+
+                        LogMessage(error.message);
+
+                        if (error.shouldContinue) continue;
+                        else break;
                     }
                 }
                 LogMessage($"Time spent: {stopwatch.Elapsed}");
